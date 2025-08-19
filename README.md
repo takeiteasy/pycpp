@@ -1,4 +1,12 @@
-(C) 2018-2019 Niall Douglas http://www.nedproductions.biz/
+# pycpp
+
+A ~C99~ C11  preprocessor written in pure Python: forked from [https://github.com/ned14/pycpp/](pycpp) to support C11.
+
+## LICENSE
+
+```
+    (C) 2025-     George Watson https://www.github.com/takeiteasy
+and (C) 2018-2019 Niall Douglas http://www.nedproductions.biz/
 and (C) 2007-2019 David Beazley http://www.dabeaz.com/
 
 All rights reserved.
@@ -27,3 +35,4 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```

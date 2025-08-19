@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Python C99 conforming preprocessor command line
+# Python C11 conforming preprocessor command line
 # (C) 2017-2020 Niall Douglas http://www.nedproductions.biz/
 # Started: March 2017
 
@@ -8,7 +8,7 @@ from __future__ import generators, print_function, absolute_import, division
 import sys, argparse, traceback, os, copy, io, re
 if __name__ == '__main__' and __package__ is None:
     sys.path.append( os.path.dirname( os.path.dirname( os.path.abspath(__file__) ) ) )
-from pcpp.preprocessor import Preprocessor, OutputDirective, Action
+from pycpp.preprocessor import Preprocessor, OutputDirective, Action
 
 version='1.30'
 
@@ -30,13 +30,13 @@ class CmdPreprocessor(Preprocessor):
     def __init__(self, argv):
         if len(argv) < 2:
             argv = [argv[0], '--help']
-        argp = argparse.ArgumentParser(prog='pcpp',
+        argp = argparse.ArgumentParser(prog='pycpp',
             description=
     '''A pure universal Python C (pre-)preprocessor implementation very useful for
     pre-preprocessing header only C++ libraries into single file includes and
     other such build or packaging stage malarky.''',
             epilog=
-    '''Note that so pcpp can stand in for other preprocessor tooling, it
+    '''Note that so pycpp can stand in for other preprocessor tooling, it
     ignores any arguments it does not understand.''')
         argp.add_argument('inputs', metavar = 'input', default = [sys.stdin], nargs = '*', action = FileAction, help = 'Files to preprocess (use \'-\' for stdin)')
         argp.add_argument('-o', dest = 'output', metavar = 'path', type = argparse.FileType('wt'), default=sys.stdout, nargs = '?', help = 'Output to a file instead of stdout')
@@ -53,14 +53,14 @@ class CmdPreprocessor(Preprocessor):
         argp.add_argument('--passthru-includes', dest = 'passthru_includes', metavar = '<regex>', default = None, nargs = 1, help = "Regular expression for which #includes to not expand. #includes, if found, are always executed")
         argp.add_argument('--disable-auto-pragma-once', dest = 'auto_pragma_once_disabled', action = 'store_true', default = False, help = 'Disable the heuristics which auto apply #pragma once to #include files wholly wrapped in an obvious include guard macro')
         argp.add_argument('--line-directive', dest = 'line_directive', metavar = 'form', default = '#line', nargs = '?', help = "Form of line directive to use, defaults to #line, specify nothing to disable output of line directives")
-        argp.add_argument('--debug', dest = 'debug', action = 'store_true', help = 'Generate a pcpp_debug.log file logging execution')
+        argp.add_argument('--debug', dest = 'debug', action = 'store_true', help = 'Generate a pycpp_debug.log file logging execution')
         argp.add_argument('--time', dest = 'time', action = 'store_true', help = 'Print the time it took to #include each file')
         argp.add_argument('--filetimes', dest = 'filetimes', metavar = 'path', type = argparse.FileType('wt'), default=None, nargs = '?', help = 'Write CSV file with time spent inside each included file, inclusive and exclusive')
         argp.add_argument('--compress', dest = 'compress', action = 'store_true', help = 'Make output as small as possible')
         argp.add_argument('--assume-input-encoding', dest = 'assume_input_encoding', metavar = '<encoding>', default = None, nargs = 1, help = 'The text encoding to assume inputs are in')
         argp.add_argument('--output-encoding', dest = 'output_encoding', metavar = '<encoding>', default = None, nargs = 1, help = 'The text encoding to use when writing files')
         argp.add_argument('--write-bom', dest = 'write_bom', action = 'store_true', help = 'Prefix any output with a Unicode BOM')
-        argp.add_argument('--version', action='version', version='pcpp ' + version)
+        argp.add_argument('--version', action='version', version='pycpp ' + version)
         args = argp.parse_known_args(argv[1:])
         #print(args)
         for arg in args[1]:
@@ -70,11 +70,11 @@ class CmdPreprocessor(Preprocessor):
         super(CmdPreprocessor, self).__init__()
         
         # Override Preprocessor instance variables
-        self.define("__PCPP_VERSION__ " + version)
-        self.define("__PCPP_ALWAYS_FALSE__ 0")
-        self.define("__PCPP_ALWAYS_TRUE__ 1")
+        self.define("__pycpp_VERSION__ " + version)
+        self.define("__pycpp_ALWAYS_FALSE__ 0")
+        self.define("__pycpp_ALWAYS_TRUE__ 1")
         if self.args.debug:
-            self.debugout = open("pcpp_debug.log", "wt")
+            self.debugout = open("pycpp_debug.log", "wt")
         self.auto_pragma_once_enabled = not self.args.auto_pragma_once_disabled
         self.line_directive = self.args.line_directive
         if self.line_directive is not None and self.line_directive.lower() in ('nothing', 'none', ''):
@@ -221,7 +221,7 @@ class CmdPreprocessor(Preprocessor):
     def on_directive_handle(self,directive,toks,ifpassthru,precedingtoks):
         if ifpassthru:
             if directive.value == 'if' or directive.value == 'elif' or directive == 'else' or directive.value == 'endif':
-                self.bypass_ifpassthru = len([tok for tok in toks if tok.value == '__PCPP_ALWAYS_FALSE__' or tok.value == '__PCPP_ALWAYS_TRUE__']) > 0
+                self.bypass_ifpassthru = len([tok for tok in toks if tok.value == '__pycpp_ALWAYS_FALSE__' or tok.value == '__pycpp_ALWAYS_TRUE__']) > 0
             if not self.bypass_ifpassthru and (directive.value == 'define' or directive.value == 'undef'):
                 if toks[0].value != self.potential_include_guard:
                     raise OutputDirective(Action.IgnoreAndPassThrough)  # Don't execute anything with effects when inside an #if expr with undefined macro

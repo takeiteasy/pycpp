@@ -1,12 +1,12 @@
 import unittest
 
-class pcpp_doctests(unittest.TestCase):
+class pycpp_doctests(unittest.TestCase):
     def runTest(self):
-        import doctest, pcpp.preprocessor, pcpp.evaluator
-        failurecount, testcount = doctest.testmod(pcpp.evaluator)
+        import doctest, pycpp.preprocessor, pycpp.evaluator
+        failurecount, testcount = doctest.testmod(pycpp.evaluator)
         self.assertGreater(testcount, 0)
         self.assertEqual(failurecount, 0)
-        failurecount, testcount = doctest.testmod(pcpp.preprocessor)
+        failurecount, testcount = doctest.testmod(pycpp.preprocessor)
         #self.assertGreater(testcount, 0)
         self.assertEqual(failurecount, 0)
 

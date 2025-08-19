@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Python C99 conforming preprocessor parser config
+# Python C11 conforming preprocessor parser config
 # (C) 2017-2020 Niall Douglas http://www.nedproductions.biz/
 # and (C) 2007-2017 David Beazley http://www.dabeaz.com/
 # Started: Feb 2017
@@ -13,7 +13,7 @@ from __future__ import generators, print_function, absolute_import, division
 
 import sys, re, os
 
-in_production = 1  # Set to 0 if editing pcpp implementation!
+in_production = 1  # Set to 0 if editing pycpp implementation!
 
 # Some Python 3 compatibility shims
 if sys.version_info.major < 3:
@@ -36,7 +36,10 @@ tokens = (
    'CPP_DEREFERENCE', 'CPP_MINUSEQUAL', 'CPP_MINUSMINUS', 'CPP_LSHIFT', 'CPP_LESSEQUAL', 'CPP_RSHIFT',
    'CPP_GREATEREQUAL', 'CPP_LOGICALOR', 'CPP_OREQUAL', 'CPP_LOGICALAND', 'CPP_ANDEQUAL', 'CPP_EQUALITY',
    'CPP_INEQUALITY', 'CPP_XOREQUAL', 'CPP_MULTIPLYEQUAL', 'CPP_DIVIDEEQUAL', 'CPP_PLUSEQUAL', 'CPP_PLUSPLUS',
-   'CPP_PERCENTEQUAL', 'CPP_LSHIFTEQUAL', 'CPP_RSHIFTEQUAL'
+   'CPP_PERCENTEQUAL', 'CPP_LSHIFTEQUAL', 'CPP_RSHIFTEQUAL',
+   
+   # C11 keywords
+   'CPP_GENERIC', 'CPP_STATIC_ASSERT', 'CPP_ALIGNAS', 'CPP_ALIGNOF', 'CPP_THREAD_LOCAL', 'CPP_NORETURN'
 )
 
 literals = "+-*/%|&~^<>=!?()[]{}.,;:\\\'\""
@@ -108,7 +111,34 @@ t_CPP_LSHIFTEQUAL = r'<<='
 t_CPP_RSHIFTEQUAL = r'>>='
 
 
-# Identifier
+# C11 keywords - these need to be checked before general identifiers
+# In PLY, token functions are processed in order of definition, so keywords
+# must be defined before the general identifier rule
+def t_CPP_GENERIC(t):
+    r'_Generic'
+    return t
+
+def t_CPP_STATIC_ASSERT(t):
+    r'_Static_assert'
+    return t
+
+def t_CPP_ALIGNAS(t):
+    r'_Alignas'
+    return t
+
+def t_CPP_ALIGNOF(t):
+    r'_Alignof'
+    return t
+
+def t_CPP_THREAD_LOCAL(t):
+    r'_Thread_local'
+    return t
+
+def t_CPP_NORETURN(t):
+    r'_Noreturn'
+    return t
+
+# Identifier - must come after keyword definitions
 t_CPP_ID = r'[A-Za-z_][\w_]*'
 
 # Integer literal

@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Python C99 conforming preprocessor useful for generating single include files
+# Python C11 conforming preprocessor useful for generating single include files
 # (C) 2017-2021 Niall Douglas http://www.nedproductions.biz/
 # and (C) 2007-2017 David Beazley http://www.dabeaz.com/
 # Started: Feb 2017
@@ -14,8 +14,8 @@ from __future__ import generators, print_function, absolute_import, division
 import sys, os, re, codecs, time, copy, traceback
 if __name__ == '__main__' and __package__ is None:
     sys.path.append( os.path.dirname( os.path.dirname( os.path.abspath(__file__) ) ) )
-from pcpp.parser import STRING_TYPES, default_lexer, trigraph, Macro, Action, OutputDirective, PreprocessorHooks
-from pcpp.evaluator import Evaluator
+from pycpp.parser import STRING_TYPES, default_lexer, trigraph, Macro, Action, OutputDirective, PreprocessorHooks
+from pycpp.evaluator import Evaluator
 
 # Some Python 3 compatibility shims
 if sys.version_info.major < 3:
@@ -79,7 +79,7 @@ class Preprocessor(PreprocessorHooks):
         tm = time.localtime()
         self.define("__DATE__ \"%s\"" % time.strftime("%b %d %Y",tm))
         self.define("__TIME__ \"%s\"" % time.strftime("%H:%M:%S",tm))
-        self.define("__PCPP__ 1")
+        self.define("__pycpp__ 1")
         self.expand_linemacro = True
         self.expand_filemacro = True
         self.expand_countermacro = True
@@ -632,7 +632,7 @@ class Preprocessor(PreprocessorHooks):
                                 # A non-conforming extension implemented by the GCC and clang preprocessors
                                 # is that an expansion of a macro with arguments where the following token is
                                 # an identifier inserts a space between the expansion and the identifier. This
-                                # differs from Boost.Wave incidentally (see https://github.com/ned14/pcpp/issues/29)
+                                # differs from Boost.Wave incidentally (see https://github.com/ned14/pycpp/issues/29)
                                 if len(tokens) > j+tokcount and tokens[j+tokcount].type in self.t_ID:
                                     #print("*** token after expansion is", tokens[j+tokcount])
                                     newtok = copy.copy(tokens[j+tokcount])

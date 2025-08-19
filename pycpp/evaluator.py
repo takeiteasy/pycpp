@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Python C99 conforming preprocessor expression evaluator
+# Python C11 conforming preprocessor expression evaluator
 # (C) 2019-2020 Niall Douglas http://www.nedproductions.biz/
 # Started: Apr 2019
 
@@ -8,7 +8,7 @@ from __future__ import generators, print_function, absolute_import, division
 import sys, os, re, codecs, copy
 if __name__ == '__main__' and __package__ is None:
     sys.path.append( os.path.dirname( os.path.dirname( os.path.abspath(__file__) ) ) )
-from pcpp.parser import STRING_TYPES, yacc, default_lexer, in_production
+from pycpp.parser import STRING_TYPES, yacc, default_lexer, in_production
 
 # The width of signed integer which this evaluator will use
 INTMAXBITS = 64
@@ -365,7 +365,10 @@ tokens = (
 
    'CPP_LSHIFT', 'CPP_LESSEQUAL', 'CPP_RSHIFT',
    'CPP_GREATEREQUAL', 'CPP_LOGICALOR', 'CPP_LOGICALAND', 'CPP_EQUALITY',
-   'CPP_INEQUALITY'
+   'CPP_INEQUALITY',
+   
+   # C11 tokens that can appear in preprocessor expressions
+   'CPP_GENERIC', 'CPP_ALIGNOF'
 )
 # 'CPP_WS', 'CPP_EQUAL',  'CPP_BSLASH', 'CPP_SQUOTE',
 
@@ -523,6 +526,76 @@ def p_expression_identifier(p):
         p.lexer.on_identifier(p)
     except Exception as e:
         p[0] = Value(0, exception = e)
+
+# C11 _Generic expressions
+def p_expression_generic(p):
+    '''expression : CPP_GENERIC CPP_LPAREN expression CPP_COMMA generic_assoc_list CPP_RPAREN'''
+    try:
+        # For preprocessor purposes, _Generic is mostly a pass-through
+        # The actual type selection happens at compile time, not preprocessor time
+        # We evaluate to the default case or first case if available
+        assoc_list = p[5]
+        if 'default' in assoc_list:
+            p[0] = assoc_list['default']
+        elif assoc_list:
+            # Use first association as fallback
+            p[0] = next(iter(assoc_list.values()))
+        else:
+            p[0] = Value(0)
+    except Exception as e:
+        p[0] = Value(0, exception = e)
+
+def p_generic_assoc_list(p):
+    '''generic_assoc_list : generic_association
+                         | generic_assoc_list CPP_COMMA generic_association'''
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        p[1].update(p[3])
+        p[0] = p[1]
+
+def p_generic_association(p):
+    '''generic_association : type_name CPP_COLON expression
+                          | CPP_ID CPP_COLON expression'''
+    # Create a dict mapping type to expression
+    if p[1] == 'default':
+        p[0] = {'default': p[3]}
+    else:
+        p[0] = {str(p[1]): p[3]}
+
+def p_type_name(p):
+    '''type_name : CPP_ID
+                | CPP_ID CPP_ID
+                | CPP_ID CPP_ID CPP_ID'''
+    # For _Alignof, we want the raw identifier, not its evaluated value
+    # Handle compound type names like "long long", "unsigned int", etc.
+    if len(p) == 2:
+        p[0] = p[1]
+    elif len(p) == 3:
+        p[0] = p[1] + ' ' + p[2]
+    elif len(p) == 4:
+        p[0] = p[1] + ' ' + p[2] + ' ' + p[3]
+
+# C11 _Alignof expressions  
+def p_expression_alignof(p):
+    '''expression : CPP_ALIGNOF CPP_LPAREN type_name CPP_RPAREN'''
+    try:
+        # For preprocessor evaluation, return common alignment values
+        type_name = str(p[3]).strip()
+        alignments = {
+            'char': 1, 'signed char': 1, 'unsigned char': 1,
+            'short': 2, 'unsigned short': 2,
+            'int': 4, 'unsigned int': 4, 'unsigned': 4,
+            'long': 8, 'unsigned long': 8,
+            'long long': 8, 'unsigned long long': 8,
+            'float': 4, 'double': 8, 'long double': 16,
+            'void': 1, 'size_t': 8, 'ptrdiff_t': 8,
+            'void*': 8, 'char*': 8, 'int*': 8  # pointer types
+        }
+        result = alignments.get(type_name, 4)
+        p[0] = Value(result)
+    except Exception as e:
+        p[0] = Value(4, exception = e)  # Default alignment
 
 
 class Evaluator(object):

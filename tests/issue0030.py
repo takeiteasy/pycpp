@@ -7,8 +7,8 @@ shouldbe = r'''#line 1 "tests/issue0030/source3.c"
 
 class runner(object):
     def runTest(self):
-        from pcpp import CmdPreprocessor
-        p = CmdPreprocessor(['pcpp', '-o', 'tests/issue0030.c',
+        from pycpp import CmdPreprocessor
+        p = CmdPreprocessor(['pycpp', '-o', 'tests/issue0030.c',
                              'tests/issue0030/source1.c',
                              'tests/issue0030/source2.c',
                              'tests/issue0030/source3.c'])

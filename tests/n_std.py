@@ -7,7 +7,7 @@ except:
 
 class n_std(unittest.TestCase):
     def runTest(self):
-        from pcpp import Preprocessor
+        from pycpp import Preprocessor
         import os
 
         start = clock()
@@ -30,11 +30,11 @@ class n_std(unittest.TestCase):
 
         with open('tests/n_std.i', 'rt') as ih:
             written = ih.readlines()
-        with open('tests/n_std-pcpp.i', 'rt') as ih:
+        with open('tests/n_std-pycpp.i', 'rt') as ih:
             reference = ih.readlines()
         if written != reference:
-            print("pcpp is not emitting its reference output! Differences:")
-            for line in difflib.unified_diff(reference, written, fromfile='n_std-pcpp.i', tofile='n_std.i'):
+            print("pycpp is not emitting its reference output! Differences:")
+            for line in difflib.unified_diff(reference, written, fromfile='n_std-pycpp.i', tofile='n_std.i'):
                 print(line, end='')
             self.assertTrue(False)
         

@@ -3,7 +3,7 @@ import unittest
 
 class issue0025(unittest.TestCase):
     def runTest(self):
-        from pcpp import Preprocessor
+        from pycpp import Preprocessor
         import os, sys
 
         p = Preprocessor()
